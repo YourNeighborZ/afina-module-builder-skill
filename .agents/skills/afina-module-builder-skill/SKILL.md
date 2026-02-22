@@ -6,7 +6,7 @@ compatibility: opencode
 metadata:
   domain: afina
   language: en
-  version: "1.0.2"
+  version: "1.0.3"
 ---
 
 ## Usage Context

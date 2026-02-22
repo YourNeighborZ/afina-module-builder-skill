@@ -8,17 +8,11 @@ const getSetting = (element, name, fallback = "") => {
 
 const replacePlaceholders = (value, savedObjects) => {
   if (typeof value !== "string") return value;
-  return value
-    .replace(/\$\{([^}]+)\}/g, (_, variable) => {
-      const key = String(variable || "").trim();
-      const replacement = savedObjects && key in savedObjects ? savedObjects[key] : "";
-      return replacement === undefined || replacement === null ? "" : String(replacement);
-    })
-    .replace(/\{\{([^}]+)\}\}/g, (_, variable) => {
-      const key = String(variable || "").trim();
-      const replacement = savedObjects && key in savedObjects ? savedObjects[key] : "";
-      return replacement === undefined || replacement === null ? "" : String(replacement);
-    });
+  return value.replace(/\$\{([^}]+)\}/g, (_, variable) => {
+    const key = String(variable || "").trim();
+    const replacement = savedObjects && key in savedObjects ? savedObjects[key] : "";
+    return replacement === undefined || replacement === null ? "" : String(replacement);
+  });
 };
 
 const createLogger = () => ({
@@ -38,15 +32,22 @@ const getCurrentPage = async (browser) => {
     try {
       if (page.isClosed()) return false;
       const url = page.url() || "";
-      return !url.startsWith("chrome-extension://") &&
+      return (
+        !url.startsWith("chrome-extension://") &&
         !url.startsWith("moz-extension://") &&
         !url.startsWith("about:") &&
         !url.startsWith("chrome://") &&
-        !url.startsWith("edge://");
+        !url.startsWith("edge://")
+      );
     } catch (_) {
       return false;
     }
   });
+
+  for (const page of regularPages) {
+    const isVisible = await page.evaluate(() => !document.hidden);
+    if (isVisible) return page;
+  }
 
   return regularPages[0] || pages[0];
 };
@@ -117,7 +118,7 @@ const moduleFunction = async (element, savedObjects, _connections, _elementMap, 
       logger.info(`Result saved to variable: ${saveTo}`);
     }
 
-    return { text, pageUrl: page.url(), at: Date.now() };
+    return text;
   } catch (error) {
     logger.error(`Module error: ${error.message}`);
     throw error;
