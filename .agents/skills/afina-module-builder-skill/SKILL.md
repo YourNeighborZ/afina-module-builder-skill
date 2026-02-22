@@ -6,7 +6,7 @@ compatibility: opencode
 metadata:
   domain: afina
   language: en
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 ## Usage Context
@@ -27,6 +27,7 @@ Afina scenarios are built as visual graphs. A **Module** is a custom block (`exe
 3. **Axiom of Resources**: the browser (`puppeteer`) is launched only if a real DOM is needed (clicks, iframe, rendering). Node.js is sufficient for API/parsing.
 4. **Axiom of the Core**: the utility block `process.on("message")` is untouchable. **Global handlers are mandatory**: `uncaughtException`, `unhandledRejection` and `disconnect` (preventing zombie processes).
 5. **Axiom of Tabs**: when working with Puppeteer **never use `pages[0]` blindly**, always search for the active visible tab via `getCurrentPage()`.
+6. **Axiom of Output Contract**: `result` must contain the final business value intended for downstream use. Do not return debug/meta objects or intermediate payloads. Arrays are prohibited by default unless the user explicitly requests collection output.
 
 ## Working Algorithm
 
@@ -75,11 +76,13 @@ Brief constraints:
 5. **Process Safety**: At the end of `index.js`, 3 global listeners are strictly present: `uncaughtException`, `unhandledRejection`, `disconnect`.
 6. **Browser Security**: The script uses `getCurrentPage()` instead of `browser.pages()[0]`, and correctly releases resources via `browser.disconnect()` (no `browser.close()`).
 7. **Adaptive Brief Compliance**: If uncertainty was medium/high, a short brief (max 3 questions) was used before implementation; if uncertainty was low, assumptions were stated briefly.
+8. **Output Contract**: `result` and `savedObjects[saveTo]` contain the final business value (not a debug object, not intermediate payloads, and not arrays by default).
 
 ## Checklist
 
 - [ ] All `name` values from `settings.json` match the paths in JS.
 - [ ] Input variables (`loadTo`) are passed through `replacePlaceholders()` strictly in the `${...}` format.
+- [ ] `result` is the final business value (no debug/meta object, no intermediate payload, no array by default).
 - [ ] **3 global listeners** are added to `index.js`: `uncaughtException`, `unhandledRejection` and `disconnect`.
 - [ ] If Puppeteer is used, the browser is disconnected via `browser.disconnect()`, not `browser.close()`.
 
