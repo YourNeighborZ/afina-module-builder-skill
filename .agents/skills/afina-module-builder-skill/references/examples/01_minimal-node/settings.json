@@ -1,0 +1,34 @@
+{
+  "type": "Text Transform",
+  "fields": [
+    {
+      "name": "inputText",
+      "label": "Введите текст",
+      "type": "text",
+      "default": "",
+      "loadTo": true,
+      "groupId": "input"
+    },
+    {
+      "name": "operation",
+      "label": "Операция",
+      "type": "select",
+      "default": "trim",
+      "options": [
+        { "label": "Обрезать пробелы", "value": "trim" },
+        { "label": "В верхний регистр", "value": "uppercase" },
+        { "label": "В нижний регистр", "value": "lowercase" },
+        { "label": "Длина текста", "value": "length" }
+      ],
+      "groupId": "input"
+    },
+    {
+      "name": "saveTo",
+      "label": "Сохранить результат в переменную",
+      "type": "text",
+      "default": "",
+      "loadTo": true,
+      "groupId": "output"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "afina-example-browser-puppeteer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "puppeteer-core": "latest"
+  }
+}

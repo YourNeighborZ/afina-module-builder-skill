@@ -1,0 +1,71 @@
+{
+  "type": "Nousresearch",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Выберите модель",
+      "type": "select",
+      "default": "Hermes-3-Llama-3.1-70B",
+      "options": [
+        { "label": "Hermes-3-Llama-3.1-70B", "value": "Hermes-3-Llama-3.1-70B" },
+        { "label": "Hermes-3-Llama-3.1-405B", "value": "Hermes-3-Llama-3.1-405B" },
+        { "label": "DeepHermes-3-Llama-3-8B-Preview", "value": "DeepHermes-3-Llama-3-8B-Preview" },
+        { "label": "DeepHermes-3-Mistral-24B-Preview", "value": "DeepHermes-3-Mistral-24B-Preview" }
+      ],
+      "groupId": "request"
+    },
+    {
+      "name": "api",
+      "label": "Укажите API-ключ",
+      "type": "text",
+      "default": "",
+      "loadTo": "true",
+      "groupId": "request"
+    },
+    {
+      "name": "request",
+      "label": "Введите текст запроса",
+      "type": "textarea",
+      "default": "",
+      "loadTo": "true",
+      "groupId": "request"
+    },
+    {
+      "name": "maxTokens",
+      "label": "Максимум токенов",
+      "type": "number",
+      "default": "256",
+      "groupId": "request"
+    },
+    {
+      "name": "delay",
+      "label": "Задержка от (мс)",
+      "type": "number",
+      "default": "0",
+      "groupId": "delay"
+    },
+    {
+      "name": "delay2",
+      "label": "Задержка до (мс)",
+      "type": "number",
+      "default": "1000",
+      "groupId": "delay"
+    },
+    {
+      "name": "description",
+      "label": "Комментарий к модулю",
+      "type": "text",
+      "default": "",
+      "groupId": "meta"
+    },
+    {
+      "name": "saveTo",
+      "label": "Сохранить ответ в переменную",
+      "type": "text",
+      "default": "",
+      "loadTo": "true",
+      "groupId": "output"
+    }
+  ],
+  "variables": {}
+}

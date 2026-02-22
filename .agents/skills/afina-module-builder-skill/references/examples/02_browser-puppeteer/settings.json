@@ -1,0 +1,36 @@
+{
+  "type": "Read Page Text",
+  "fields": [
+    {
+      "name": "targetSelector",
+      "label": "CSS селектор элемента",
+      "type": "text",
+      "default": "h1",
+      "loadTo": true,
+      "groupId": "query"
+    },
+    {
+      "name": "targetXpath",
+      "label": "XPath элемента (резерв)",
+      "type": "text",
+      "default": "//h1",
+      "loadTo": true,
+      "groupId": "query"
+    },
+    {
+      "name": "timeoutMs",
+      "label": "Таймаут чтения (мс)",
+      "type": "number",
+      "default": "10000",
+      "groupId": "query"
+    },
+    {
+      "name": "saveTo",
+      "label": "Сохранить результат в переменную",
+      "type": "text",
+      "default": "",
+      "loadTo": true,
+      "groupId": "output"
+    }
+  ]
+}
