@@ -6,7 +6,7 @@ compatibility: opencode
 metadata:
   domain: afina
   language: en
-  version: "1.0"
+  version: "1.0.1"
 ---
 
 ## Usage Context
@@ -30,18 +30,41 @@ Afina scenarios are built as visual graphs. A **Module** is a custom block (`exe
 
 ## Working Algorithm
 
-1. **Design settings**:
+1. **Clarify only when needed (short brief)**:
+   - Use an adaptive brief only if uncertainty is medium/high.
+   - If uncertainty is low, proceed without questions.
+   - Ask at most **3** short, high-impact questions.
+   - In each question, provide a recommended default option.
+2. **Design settings**:
    - Use `camelCase` for `name`.
    - If there is an output, add the `saveTo` field.
    - If complex UI elements are needed (`options`, `isVisible`), peek at the syntax in `best-practices.md`.
-2. **Implement logic**:
+3. **Implement logic**:
    - Copy the **entire skeleton from `templates.md`** (it already contains `replacePlaceholders` in the strict `${...}` standard and all global error handlers).
    - Write business logic inside `moduleFunction`.
    - Read via `element.settings.<name>`, write to `savedObjects[saveTo]`.
    - **`utils.js` rule**: For browser modules (Puppeteer), a separate `utils.js` file with the `getCurrentPage` function is **mandatory**. For pure Node.js modules, it's sufficient to keep helper functions directly in `index.js`.
-3. **Verify**:
+4. **Verify**:
    - Is `loadTo: true` processed via `replacePlaceholders()`?
    - Does `try...catch` return an error to the core?
+
+## Clarification Brief Rules (Adaptive)
+
+Ask a short brief only when decisions materially affect architecture, settings, or UX.
+
+Use a brief when at least one trigger exists:
+
+- goal/result is ambiguous (what should be saved and where);
+- runtime choice is unclear (pure Node.js vs Puppeteer);
+- user request looks inconsistent/risky (unnecessary browser automation, conflicting settings, fragile logic);
+- useful optional settings can improve usability, but choice depends on user intent.
+
+Brief constraints:
+
+- maximum **3 questions** total;
+- questions must be specific and decision-oriented;
+- include a recommended default in each question;
+- if defaults are safe, proceed without questions and explicitly state assumptions.
 
 ## Definition of Done
 
@@ -51,6 +74,7 @@ Afina scenarios are built as visual graphs. A **Module** is a custom block (`exe
 4. **IPC Lifecycle**: The module responds with `status: "ready"` upon startup, `status: "success"` with the result, and `status: "error"` upon failure.
 5. **Process Safety**: At the end of `index.js`, 3 global listeners are strictly present: `uncaughtException`, `unhandledRejection`, `disconnect`.
 6. **Browser Security**: The script uses `getCurrentPage()` instead of `browser.pages()[0]`, and correctly releases resources via `browser.disconnect()` (no `browser.close()`).
+7. **Adaptive Brief Compliance**: If uncertainty was medium/high, a short brief (max 3 questions) was used before implementation; if uncertainty was low, assumptions were stated briefly.
 
 ## Checklist
 
@@ -65,8 +89,9 @@ Always provide:
 
 1. List of files.
 2. Logic explanation.
-3. npm installation commands (if any).
-4. Import instructions for Afina.
+3. Brief decisions/assumptions (only if relevant).
+4. npm installation commands (if any).
+5. Import instructions for Afina.
 
 ---
 
