@@ -1,18 +1,9 @@
-const puppeteer = require("puppeteer-core");
+const { replacePlaceholders, getCurrentPage, connectToBrowser } = require('./utils');
 
 const getSetting = (element, name, fallback = "") => {
   const settings = (element && element.settings) || {};
   if (settings[name] !== undefined) return settings[name];
   return fallback;
-};
-
-const replacePlaceholders = (value, savedObjects) => {
-  if (typeof value !== "string") return value;
-  return value.replace(/\$\{([^}]+)\}/g, (_, variable) => {
-    const key = String(variable || "").trim();
-    const replacement = savedObjects && key in savedObjects ? savedObjects[key] : "";
-    return replacement === undefined || replacement === null ? "" : String(replacement);
-  });
 };
 
 const createLogger = () => ({
@@ -21,36 +12,6 @@ const createLogger = () => ({
   error: (message) => process.send && process.send({ type: "log", level: "error", message }),
   debug: (message) => process.send && process.send({ type: "log", level: "debug", message })
 });
-
-const getCurrentPage = async (browser) => {
-  const pages = await browser.pages();
-  if (!pages.length) {
-    throw new Error("No available pages in browser");
-  }
-
-  const regularPages = pages.filter((page) => {
-    try {
-      if (page.isClosed()) return false;
-      const url = page.url() || "";
-      return (
-        !url.startsWith("chrome-extension://") &&
-        !url.startsWith("moz-extension://") &&
-        !url.startsWith("about:") &&
-        !url.startsWith("chrome://") &&
-        !url.startsWith("edge://")
-      );
-    } catch (_) {
-      return false;
-    }
-  });
-
-  for (const page of regularPages) {
-    const isVisible = await page.evaluate(() => !document.hidden);
-    if (isVisible) return page;
-  }
-
-  return regularPages[0] || pages[0];
-};
 
 const readTextBySelectorOrXpath = async (page, selector, xpath) => {
   if (selector) {
@@ -98,7 +59,7 @@ const moduleFunction = async (element, savedObjects, _connections, _elementMap, 
 
   logger.debug(`Query selector='${selector}', xpath='${xpath}', timeoutMs=${timeoutMs}`);
 
-  const browser = await puppeteer.connect({ browserWSEndpoint: wsEndpoint, defaultViewport: null });
+  const browser = await connectToBrowser(wsEndpoint);
 
   try {
     const page = await getCurrentPage(browser);

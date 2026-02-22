@@ -12,27 +12,7 @@ Based on best practices from the `browser-use` and `agent-browser` ecosystem, ob
 3. **Bypassing Shadow DOM / iframe:**
    - To search within an iframe, find the target frame by URL: `const frame = page.frames().find(f => f.url().includes('login'));`
    - For Shadow DOM, use Puppeteer piercing selectors (e.g., `>>>`) or execute logic within `evaluate`.
-4. **Finding Active Tab (Critical):** Using `browser.pages()[0]` is strictly prohibited, as in Afina this can often be a background extension tab (offscreen.html or about:blank). Always use `utils.js` with the canonical `getCurrentPage` below. In pure Node.js modules, `utils.js` is not required.
-
-   ```javascript
-   const getCurrentPage = async (browser) => {
-     const pages = await browser.pages();
-     if (!pages.length) throw new Error("No available pages in browser");
-     const regularPages = pages.filter((page) => {
-       try {
-         if (page.isClosed()) return false;
-         const url = page.url() || "";
-         return !url.startsWith("chrome-extension://") && !url.startsWith("moz-extension://") &&
-                !url.startsWith("about:") && !url.startsWith("chrome://") && !url.startsWith("edge://");
-       } catch (_) { return false; }
-     });
-     for (const page of regularPages) {
-       const isVisible = await page.evaluate(() => !document.hidden);
-       if (isVisible) return page;
-     }
-     return regularPages[0] || pages[0]; // fallback
-   };
-   ```
+4. **Finding Active Tab (Critical):** Using `browser.pages()[0]` is strictly prohibited, as in Afina this can often be a background extension tab (offscreen.html or about:blank). Always use `utils.js` sourced verbatim from `references/canonical/utils.js` — never rewrite it manually. The canonical file exports `getCurrentPage` (and also `replacePlaceholders`, `delay`, `connectToBrowser`). In pure Node.js modules, `utils.js` is not required.
 5. **Human-like Interaction (Anti-bot):** To avoid blocks (e.g., Cloudflare), add a delay when typing text: `await page.type('#input', text, { delay: Math.floor(Math.random() * 50) + 50 })`.
 6. **Handling Race Conditions in React/Vue:** When observing the DOM (via `MutationObserver`), containers often appear on screen empty, and text loads fractions of a second later. **Never set a "processed" marker (e.g., data-counted="true") before the element's `innerText` is no longer an empty string.** Otherwise, the module will miss the actual data appearance. Always add a check `if (!el.innerText.trim()) return;`.
 7. **Safe Disconnection:** At the end of the module's work or in a `finally` block, be sure to call `await browser.disconnect();`. Do not use `browser.close()` to avoid terminating the entire browser process in which the Afina scenario is running.

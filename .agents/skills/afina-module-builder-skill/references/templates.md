@@ -130,54 +130,22 @@ if (typeof process.send === "function") {
 
 Use these when the task requires real DOM access (clicks, reading page content, iframes).
 
-### `utils.js` — active tab helper (mandatory for browser modules)
+### `utils.js` — canonical helper file (mandatory for browser modules)
+
+**Do not write this file manually.** Copy it verbatim from `references/canonical/utils.js`.
+
+It exports: `replacePlaceholders`, `delay`, `connectToBrowser`, `getCurrentPage`.
+
+In `index.js`, require it as:
 
 ```javascript
-const getCurrentPage = async (browser) => {
-  const pages = await browser.pages();
-  if (!pages.length) throw new Error("No available pages in browser");
-
-  const regularPages = pages.filter((page) => {
-    try {
-      if (page.isClosed()) return false;
-      const url = page.url() || "";
-      return (
-        !url.startsWith("chrome-extension://") &&
-        !url.startsWith("moz-extension://") &&
-        !url.startsWith("about:") &&
-        !url.startsWith("chrome://") &&
-        !url.startsWith("edge://")
-      );
-    } catch (_) {
-      return false;
-    }
-  });
-
-  for (const page of regularPages) {
-    const isVisible = await page.evaluate(() => !document.hidden);
-    if (isVisible) return page;
-  }
-
-  return regularPages[0] || pages[0];
-};
-
-module.exports = { getCurrentPage };
+const { replacePlaceholders, getCurrentPage, connectToBrowser } = require('./utils');
 ```
 
 ### `index.js` Skeleton — Puppeteer module (IPC-safe)
 
 ```javascript
-const puppeteer = require("puppeteer-core");
-const { getCurrentPage } = require("./utils");
-
-const replacePlaceholders = (value, savedObjects) => {
-  if (typeof value !== "string") return value;
-  return value.replace(/\$\{([^}]+)\}/g, (_, variable) => {
-    const key = String(variable || "").trim();
-    const replacement = savedObjects && key in savedObjects ? savedObjects[key] : "";
-    return replacement === undefined || replacement === null ? "" : String(replacement);
-  });
-};
+const { replacePlaceholders, getCurrentPage, connectToBrowser } = require('./utils');
 
 const moduleFunction = async (
   element,
@@ -200,7 +168,7 @@ const moduleFunction = async (
   const settings = element?.settings || {};
   const saveTo = replacePlaceholders(settings.saveTo ?? "", savedObjects);
 
-  const browser = await puppeteer.connect({ browserWSEndpoint: wsEndpoint, defaultViewport: null });
+  const browser = await connectToBrowser(wsEndpoint);
 
   try {
     const page = await getCurrentPage(browser);
