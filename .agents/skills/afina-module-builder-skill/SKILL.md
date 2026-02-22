@@ -6,7 +6,7 @@ compatibility: opencode
 metadata:
   domain: afina
   language: en
-  version: "1.0.3"
+  version: "1.1.0"
 ---
 
 ## Usage Context
@@ -36,18 +36,29 @@ Afina scenarios are built as visual graphs. A **Module** is a custom block (`exe
    - If uncertainty is low, proceed without questions.
    - Ask at most **3** short, high-impact questions.
    - In each question, provide a recommended default option.
-2. **Design settings**:
+2. **Write the implementation plan**:
+   - Create `docs/<module-name>/` in the project root if it does not exist.
+   - Write `docs/<module-name>/plan.md` as a roadmap with phase headings and checkboxes inside each phase.
+   - Roadmap phases: Settings Design → Logic Implementation → Self-Testing → Output Contract Verification.
+   - **Do not start coding until `plan.md` is written.**
+3. **Design settings**:
    - Use `camelCase` for `name`.
    - If there is an output, add the `saveTo` field.
    - If complex UI elements are needed (`options`, `isVisible`), peek at the syntax in `best-practices.md`.
-3. **Implement logic**:
+4. **Implement logic**:
    - Copy the **entire skeleton from `templates.md`** (it already contains `replacePlaceholders` in the strict `${...}` standard and all global error handlers).
    - Write business logic inside `moduleFunction`.
    - Read via `element.settings.<name>`, write to `savedObjects[saveTo]`.
    - **`utils.js` rule**: For browser modules (Puppeteer), a separate `utils.js` file with the `getCurrentPage` function is **mandatory**. For pure Node.js modules, it's sufficient to keep helper functions directly in `index.js`.
-4. **Verify**:
+5. **Verify**:
    - Is `loadTo: true` processed via `replacePlaceholders()`?
    - Does `try...catch` return an error to the core?
+6. **Self-test after implementation**:
+   - Syntax: no obvious JS errors (missing brackets, bad requires, mismatched braces).
+   - IPC contract: `process.send({ status: "ready" })` is present at module end.
+   - Output contract: `result` is a plain business value, not an object or array.
+   - Settings consistency: all `settings.json` field `name` values match `element.settings.<name>` reads in code.
+   - Report each check inline: `pass` or `fail + reason`.
 
 ## Clarification Brief Rules (Adaptive)
 
@@ -58,7 +69,8 @@ Use a brief when at least one trigger exists:
 - goal/result is ambiguous (what should be saved and where);
 - runtime choice is unclear (pure Node.js vs Puppeteer);
 - user request looks inconsistent/risky (unnecessary browser automation, conflicting settings, fragile logic);
-- useful optional settings can improve usability, but choice depends on user intent.
+- useful optional settings can improve usability, but choice depends on user intent;
+- module name is unclear or generic (required for correct `docs/<module-name>/` directory naming).
 
 Brief constraints:
 
@@ -66,6 +78,19 @@ Brief constraints:
 - questions must be specific and decision-oriented;
 - include a recommended default in each question;
 - if defaults are safe, proceed without questions and explicitly state assumptions.
+
+## Bug Report Protocol
+
+When the user reports that a module or function is not working correctly:
+
+1. **Active listening**: ask at most **2** clarifying questions to precisely identify the symptom and its context (what was expected, what actually happened, in which step).
+2. **Research**: review the relevant code, `settings.json` field names, IPC flow, and output value.
+3. **Write bug report** to `docs/<module-name>/bug-<short-slug>.md` with the following structure:
+   - **Symptom** — what the user observed vs. what was expected.
+   - **Root cause** — identified source of the problem in the code or config.
+   - **Fix options** — at least 2 options with trade-offs.
+   - **Recommended fix** — chosen option with rationale.
+4. **Apply the fix** only after the report file is created.
 
 ## Definition of Done
 
@@ -77,6 +102,8 @@ Brief constraints:
 6. **Browser Security**: The script uses `getCurrentPage()` instead of `browser.pages()[0]`, and correctly releases resources via `browser.disconnect()` (no `browser.close()`).
 7. **Adaptive Brief Compliance**: If uncertainty was medium/high, a short brief (max 3 questions) was used before implementation; if uncertainty was low, assumptions were stated briefly.
 8. **Output Contract**: `result` and `savedObjects[saveTo]` contain the final business value (not a debug object, not intermediate payloads, and not arrays by default).
+9. **Implementation Plan**: `docs/<module-name>/plan.md` exists and was written before coding started, structured as a roadmap with phase headings and checkboxes.
+10. **Self-testing**: all self-verifiable checks (syntax, IPC, output contract, settings consistency) were run after implementation and results reported inline.
 
 ## Checklist
 
@@ -85,6 +112,8 @@ Brief constraints:
 - [ ] `result` is the final business value (no debug/meta object, no intermediate payload, no array by default).
 - [ ] **3 global listeners** are added to `index.js`: `uncaughtException`, `unhandledRejection` and `disconnect`.
 - [ ] If Puppeteer is used, the browser is disconnected via `browser.disconnect()`, not `browser.close()`.
+- [ ] `docs/<module-name>/plan.md` created before coding started.
+- [ ] Self-test results reported inline (syntax, IPC, output contract, settings consistency).
 
 ## Response Format
 
