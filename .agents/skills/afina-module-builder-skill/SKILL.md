@@ -43,6 +43,7 @@ Afina scenarios are built as visual graphs. A **Module** is a custom block (`exe
    - **Do not start coding until `plan.md` is written.**
 3. **Design settings**:
    - Use `camelCase` for `name`.
+   - New modules use `"loadTo": true` (boolean). Keep legacy `"loadTo": "true"` only when preserving compatibility with an existing production module.
    - If there is an output, add the `saveTo` field.
    - If complex UI elements are needed (`options`, `isVisible`), peek at the syntax in `best-practices.md`.
 4. **Implement logic**:
@@ -51,7 +52,7 @@ Afina scenarios are built as visual graphs. A **Module** is a custom block (`exe
    - Read via `element.settings.<name>`, write to `savedObjects[saveTo]`.
    - **`utils.js` rule**: For browser modules (Puppeteer), a separate `utils.js` file with the `getCurrentPage` function is **mandatory**. For pure Node.js modules, it's sufficient to keep helper functions directly in `index.js`.
 5. **Verify**:
-   - Is `loadTo: true` processed via `replacePlaceholders()`?
+   - Are fields marked with `loadTo` processed via `replacePlaceholders()` (canonical boolean `true`, legacy string `"true"` only when required)?
    - Does `try...catch` return an error to the core?
 6. **Self-test after implementation**:
    - Syntax: no obvious JS errors (missing brackets, bad requires, mismatched braces).
@@ -94,7 +95,7 @@ When the user reports that a module or function is not working correctly:
 
 ## Definition of Done
 
-1. **Settings**: `settings.json` contains logical field types, `loadTo` where necessary, and a `saveTo` field for the result.
+1. **Settings**: `settings.json` contains logical field types, canonical `"loadTo": true` where necessary, and a `saveTo` field for the result. Legacy `"loadTo": "true"` is allowed only for strict backward compatibility.
 2. **Read/Write**: The code strictly reads from `element.settings.<name>` and writes the result to `savedObjects[saveTo]`.
 3. **Placeholders**: Incoming strings with `loadTo` are parsed by the `replacePlaceholders` function only in `${var}` format. The `{{var}}` format is prohibited.
 4. **IPC Lifecycle**: The module responds with `status: "ready"` upon startup, `status: "success"` with the result, and `status: "error"` upon failure.
@@ -108,6 +109,7 @@ When the user reports that a module or function is not working correctly:
 ## Checklist
 
 - [ ] All `name` values from `settings.json` match the paths in JS.
+- [ ] `loadTo` in new modules is boolean `true`; legacy string `"true"` is used only for backward compatibility.
 - [ ] Input variables (`loadTo`) are passed through `replacePlaceholders()` strictly in the `${...}` format.
 - [ ] `result` is the final business value (no debug/meta object, no intermediate payload, no array by default).
 - [ ] **3 global listeners** are added to `index.js`: `uncaughtException`, `unhandledRejection` and `disconnect`.

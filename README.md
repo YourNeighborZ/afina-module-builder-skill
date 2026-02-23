@@ -7,7 +7,7 @@ A skill for designing and building Afina 1.0.3 modules in the `settings.json` + 
 - defines a single standard for module structure and settings;
 - helps correctly read parameters via `element.settings.<name>`;
 - preserves IPC compatibility (`ready/success/error`) and safe process termination;
-- always adds execution context for the agent: where it is in the module, which step it is performing, which inputs it reads, and where it writes the result;
+- enforces strict `${...}` placeholders and a business-value output contract;
 - provides ready-to-use templates and working examples for Node.js and Puppeteer scenarios.
 
 ## What it is for
@@ -21,18 +21,15 @@ Use this skill when an Afina scenario needs a custom `executeModule` block with 
 - a consistent module style across the team;
 - fewer regressions due to built-in best practices.
 
-## Best practices and examples
+## Install into a project
 
-- the skill relies on the best practices section for stable and safe implementation;
-- it includes module examples (minimal Node.js, browser Puppeteer, safe evolution of `settings.json`);
-- examples can be used as a base and quickly adapted to your task.
-
-Install the skill in a local project (without global installation).
-
-Run this command in the root of your working project:
+This repository stores the skill under `.agents/skills/afina-module-builder-skill/`. To avoid double nesting, install it in two steps:
 
 ```bash
-git clone https://github.com/YourNeighborZ/afina-module-builder-skill.git ".agents/skills/afina-module-builder-skill"
+git clone https://github.com/YourNeighborZ/afina-module-builder-skill.git ".agents/skills/afina-module-builder-skill-repo"
+mkdir -p ".agents/skills/afina-module-builder-skill"
+cp -R ".agents/skills/afina-module-builder-skill-repo/.agents/skills/afina-module-builder-skill/." ".agents/skills/afina-module-builder-skill/"
+rm -rf ".agents/skills/afina-module-builder-skill-repo"
 ```
 
-After that, the skill will be placed in the correct project folder and loaded automatically.
+After that, the skill is in the correct project folder and can be loaded automatically.

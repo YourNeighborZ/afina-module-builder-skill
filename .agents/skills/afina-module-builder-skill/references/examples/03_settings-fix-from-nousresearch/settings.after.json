@@ -19,7 +19,7 @@
       "label": "Укажите API-ключ",
       "type": "text",
       "default": "",
-      "loadTo": "true",
+      "loadTo": true,
       "groupId": "request"
     },
     {
@@ -27,7 +27,7 @@
       "label": "Введите текст запроса",
       "type": "textarea",
       "default": "",
-      "loadTo": "true",
+      "loadTo": true,
       "groupId": "request"
     },
     {
@@ -63,7 +63,7 @@
       "label": "Сохранить ответ в переменную",
       "type": "text",
       "default": "",
-      "loadTo": "true",
+      "loadTo": true,
       "groupId": "output"
     }
   ],

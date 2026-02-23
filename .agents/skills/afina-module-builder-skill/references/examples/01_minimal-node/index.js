@@ -6,17 +6,11 @@ const getSetting = (element, name, fallback = "") => {
 
 const replacePlaceholders = (value, savedObjects) => {
   if (typeof value !== "string") return value;
-  return value
-    .replace(/\$\{([^}]+)\}/g, (_, variable) => {
-      const key = String(variable || "").trim();
-      const replacement = savedObjects && key in savedObjects ? savedObjects[key] : "";
-      return replacement === undefined || replacement === null ? "" : String(replacement);
-    })
-    .replace(/\{\{([^}]+)\}\}/g, (_, variable) => {
-      const key = String(variable || "").trim();
-      const replacement = savedObjects && key in savedObjects ? savedObjects[key] : "";
-      return replacement === undefined || replacement === null ? "" : String(replacement);
-    });
+  return value.replace(/\$\{([^}]+)\}/g, (_, variable) => {
+    const key = String(variable || "").trim();
+    const replacement = savedObjects && key in savedObjects ? savedObjects[key] : "";
+    return replacement === undefined || replacement === null ? "" : String(replacement);
+  });
 };
 
 const createLogger = () => ({

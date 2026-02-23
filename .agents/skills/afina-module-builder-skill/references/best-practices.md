@@ -19,6 +19,7 @@ Based on best practices from the `browser-use` and `agent-browser` ecosystem, ob
 
 ## Anti-patterns and Fixes (Must Check)
 
+- Canonical format for new modules: `"loadTo": true` (boolean). Legacy `"loadTo": "true"` is acceptable only when preserving compatibility with an unchanged production contract.
 - Reading fields not from `element.settings` -> the module won't see data from the builder.
 - Renaming `saveTo` to `save_to` without updating logic -> loss of result.
 - Mixing placeholder formats: only `${var}` is allowed in the strict standard. Using `{{var}}` is considered a configuration error.

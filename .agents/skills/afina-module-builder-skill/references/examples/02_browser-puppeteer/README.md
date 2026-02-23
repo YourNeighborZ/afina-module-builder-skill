@@ -11,3 +11,4 @@ Example of a browser module for Afina when the task cannot be solved without DOM
 - Timeout via `Promise.race`.
 - `browser.disconnect()` instead of `browser.close()`.
 - Reading parameters from `element.settings.*` and writing results via `saveTo`.
+- Using a separate `utils.js` with canonical `getCurrentPage` for safe active-tab detection.

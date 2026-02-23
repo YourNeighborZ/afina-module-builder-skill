@@ -6,17 +6,11 @@ const getSetting = (element, name, fallback = "") => {
 
 const replacePlaceholders = (value, savedObjects) => {
   if (typeof value !== "string") return value;
-  return value
-    .replace(/\$\{([^}]+)\}/g, (_, variable) => {
-      const key = String(variable || "").trim();
-      const replacement = savedObjects && key in savedObjects ? savedObjects[key] : "";
-      return replacement === undefined || replacement === null ? "" : String(replacement);
-    })
-    .replace(/\{\{([^}]+)\}\}/g, (_, variable) => {
-      const key = String(variable || "").trim();
-      const replacement = savedObjects && key in savedObjects ? savedObjects[key] : "";
-      return replacement === undefined || replacement === null ? "" : String(replacement);
-    });
+  return value.replace(/\$\{([^}]+)\}/g, (_, variable) => {
+    const key = String(variable || "").trim();
+    const replacement = savedObjects && key in savedObjects ? savedObjects[key] : "";
+    return replacement === undefined || replacement === null ? "" : String(replacement);
+  });
 };
 
 const createLogger = () => ({
@@ -34,17 +28,15 @@ const moduleFunction = async (element, savedObjects) => {
     const maxTokens = Number(getSetting(element, "maxTokens", "256")) || 256;
     const saveTo = replacePlaceholders(getSetting(element, "saveTo", ""), savedObjects);
 
-    if (!requestText) {
+    const normalizedRequest = String(requestText).trim();
+
+    if (!normalizedRequest) {
       throw new Error("request is required");
     }
 
-    const result = {
-      model,
-      maxTokens,
-      hasApiKey: Boolean(apiKey),
-      promptLength: String(requestText).length,
-      message: "Normalized settings are applied"
-    };
+    logger.info(`Using model=${model}, maxTokens=${maxTokens}, apiKeyProvided=${Boolean(apiKey)}`);
+
+    const result = normalizedRequest;
 
     if (saveTo && savedObjects && typeof savedObjects === "object") {
       savedObjects[saveTo] = result;

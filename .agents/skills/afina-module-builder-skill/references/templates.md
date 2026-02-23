@@ -23,6 +23,11 @@
 }
 ```
 
+`loadTo` policy:
+
+- Use `"loadTo": true` (boolean) in all new modules.
+- Keep legacy `"loadTo": "true"` only when updating existing production modules that rely on the old format.
+
 ## `index.js` Template (IPC-safe with global handlers)
 
 ```javascript

@@ -7,7 +7,7 @@
 - задает единый стандарт структуры модуля и настроек;
 - помогает корректно читать параметры через `element.settings.<name>`;
 - сохраняет IPC-совместимость (`ready/success/error`) и безопасное завершение процесса;
-- всегда добавляет для агента контекст выполнения: где он находится в модуле, какой шаг выполняет, какие входы читает и куда пишет результат;
+- закрепляет строгий формат плейсхолдеров `${...}` и контракт бизнес-результата;
 - дает готовые шаблоны и рабочие примеры для Node.js и Puppeteer-сценариев.
 
 ## Для чего предназначен
@@ -21,18 +21,15 @@
 - единообразный стиль модулей в команде;
 - меньше регрессий благодаря встроенным best practices.
 
-## Best practices и примеры
+## Установка в проект
 
-- навык опирается на раздел best practices для стабильной и безопасной реализации;
-- в комплекте есть примеры модулей (минимальный Node.js, браузерный Puppeteer, безопасная эволюция `settings.json`);
-- примеры можно брать как основу и быстро адаптировать под свою задачу.
-
-Установка навыка в локальный проект (без глобальной установки).
-
-Выполните команду в корне вашего рабочего проекта:
+В этом репозитории навык лежит по пути `.agents/skills/afina-module-builder-skill/`. Чтобы избежать двойной вложенности, ставьте его в два шага:
 
 ```bash
-git clone https://github.com/YourNeighborZ/afina-module-builder-skill.git ".agents/skills/afina-module-builder-skill"
+git clone https://github.com/YourNeighborZ/afina-module-builder-skill.git ".agents/skills/afina-module-builder-skill-repo"
+mkdir -p ".agents/skills/afina-module-builder-skill"
+cp -R ".agents/skills/afina-module-builder-skill-repo/.agents/skills/afina-module-builder-skill/." ".agents/skills/afina-module-builder-skill/"
+rm -rf ".agents/skills/afina-module-builder-skill-repo"
 ```
 
-После этого навык будет лежать в правильной проектной папке и подхватится автоматически.
+После этого навык будет в правильной папке проекта и подхватится автоматически.
