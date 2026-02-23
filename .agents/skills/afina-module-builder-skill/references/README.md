@@ -7,7 +7,7 @@ Baseline compatibility target: production modules from Afina 1.0.3 (`D:\temp\Afi
 ## Structure
 - `templates.md` - Base templates for `settings.json` and `index.js` (including global error handlers).
 - `best-practices.md` - Advanced Puppeteer patterns, UI constructor syntax (isVisible, options), timeout helpers, and common anti-patterns.
-- `canonical/utils.js` - canonical browser helper (`replacePlaceholders`, `delay`, `connectToBrowser`, `getCurrentPage`).
+- `canonical/utils.js` - canonical browser helper (`replacePlaceholders`, `delay`, `openUrlWithFullLoad`, `waitForUiElement`, `waitAfterUiAction`, `connectToBrowser`, `getCurrentPage`).
 - `examples/01_minimal-node/` - module without browser, pure Node.js logic.
 - `examples/02_browser-puppeteer/` - browser module with `wsEndpoint`, safe IPC, and timeouts.
 - `examples/03_settings-fix-from-nousresearch/` - before/after compatibility-safe improvements of a real settings file.
@@ -19,3 +19,4 @@ Global consistency rules in this folder:
 - Placeholder format is strictly `${...}`.
 - New modules use `"loadTo": true`; legacy `"loadTo": "true"` is only for backward compatibility.
 - `result` must be a final business value for downstream nodes.
+- Browser wait contract is mandatory: full load wait for new URL, `1000ms` default pre-action element wait, `500-1500ms` default random post-action wait.

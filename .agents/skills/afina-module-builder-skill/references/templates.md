@@ -43,6 +43,12 @@ const replacePlaceholders = (value, savedObjects) => {
   });
 };
 
+const readKey = (raw, savedObjects) => {
+  if (!raw) return '';
+  const resolved = replacePlaceholders(raw, savedObjects);
+  return resolved !== null && resolved !== undefined ? String(resolved) : String(raw);
+};
+
 const moduleFunction = async (
   element,
   savedObjects,
@@ -66,12 +72,14 @@ const moduleFunction = async (
       settings.inputText ?? "",
       savedObjects,
     );
-    const saveTo = replacePlaceholders(settings.saveTo ?? "", savedObjects);
+    const saveTo = readKey(settings.saveTo ?? '', savedObjects);
 
     const result = String(inputText).trim();
 
     if (saveTo && savedObjects && typeof savedObjects === "object") {
       savedObjects[saveTo] = result;
+    } else {
+      logger.warn('saveTo is empty or savedObjects unavailable - result NOT saved.');
     }
 
     return result;
@@ -139,18 +147,50 @@ Use these when the task requires real DOM access (clicks, reading page content, 
 
 **Do not write this file manually.** Copy it verbatim from `references/canonical/utils.js`.
 
-It exports: `replacePlaceholders`, `delay`, `connectToBrowser`, `getCurrentPage`.
+It exports: `replacePlaceholders`, `delay`, `openUrlWithFullLoad`, `waitForUiElement`, `waitAfterUiAction`, `connectToBrowser`, `getCurrentPage`, and default wait constants.
+
+Default waiting contract for browser modules:
+
+- opening a new URL: full-load wait (`networkidle2` + `document.readyState === "complete"`);
+- before UI action: element wait `1000ms` by default;
+- after UI action: random wait `500-1500ms` by default.
 
 In `index.js`, require it as:
 
 ```javascript
-const { replacePlaceholders, getCurrentPage, connectToBrowser } = require('./utils');
+const {
+  replacePlaceholders,
+  getCurrentPage,
+  connectToBrowser,
+  openUrlWithFullLoad,
+  waitForUiElement,
+  waitAfterUiAction,
+  DEFAULT_UI_ELEMENT_WAIT_MS,
+  DEFAULT_POST_ACTION_WAIT_MIN_MS,
+  DEFAULT_POST_ACTION_WAIT_MAX_MS,
+} = require('./utils');
 ```
 
 ### `index.js` Skeleton — Puppeteer module (IPC-safe)
 
 ```javascript
-const { replacePlaceholders, getCurrentPage, connectToBrowser } = require('./utils');
+const {
+  replacePlaceholders,
+  getCurrentPage,
+  connectToBrowser,
+  openUrlWithFullLoad,
+  waitForUiElement,
+  waitAfterUiAction,
+  DEFAULT_UI_ELEMENT_WAIT_MS,
+  DEFAULT_POST_ACTION_WAIT_MIN_MS,
+  DEFAULT_POST_ACTION_WAIT_MAX_MS,
+} = require('./utils');
+
+const readKey = (raw, savedObjects) => {
+  if (!raw) return '';
+  const resolved = replacePlaceholders(raw, savedObjects);
+  return resolved !== null && resolved !== undefined ? String(resolved) : String(raw);
+};
 
 const moduleFunction = async (
   element,
@@ -171,18 +211,42 @@ const moduleFunction = async (
   if (!wsEndpoint) throw new Error("wsEndpoint not provided. Start browser before using this module.");
 
   const settings = element?.settings || {};
-  const saveTo = replacePlaceholders(settings.saveTo ?? "", savedObjects);
+  const saveTo = readKey(settings.saveTo ?? '', savedObjects);
+  const targetUrl = replacePlaceholders(settings.targetUrl ?? "", savedObjects);
+  const targetSelector = replacePlaceholders(settings.targetSelector ?? "", savedObjects);
+  const targetXpath = replacePlaceholders(settings.targetXpath ?? "", savedObjects);
+  const uiElementWaitMs = Number(settings.uiElementWaitMs ?? DEFAULT_UI_ELEMENT_WAIT_MS);
+  const postActionWaitMinMs = Number(settings.postActionWaitMinMs ?? DEFAULT_POST_ACTION_WAIT_MIN_MS);
+  const postActionWaitMaxMs = Number(settings.postActionWaitMaxMs ?? DEFAULT_POST_ACTION_WAIT_MAX_MS);
 
   const browser = await connectToBrowser(wsEndpoint);
 
   try {
     const page = await getCurrentPage(browser);
 
+    if (targetUrl) {
+      await openUrlWithFullLoad(page, targetUrl);
+    }
+
+    const targetHandle = await waitForUiElement(page, {
+      selector: targetSelector,
+      xpath: targetXpath,
+      timeoutMs: uiElementWaitMs,
+      visible: true,
+    });
+
     // --- put business logic here ---
-    const result = ""; // final business value
+    const result = await page.evaluate(
+      (el) => (el?.textContent || '').trim(),
+      targetHandle,
+    );
+
+    await waitAfterUiAction(postActionWaitMinMs, postActionWaitMaxMs);
 
     if (saveTo && savedObjects && typeof savedObjects === "object") {
       savedObjects[saveTo] = result;
+    } else {
+      logger.warn('saveTo is empty or savedObjects unavailable - result NOT saved.');
     }
 
     return result;

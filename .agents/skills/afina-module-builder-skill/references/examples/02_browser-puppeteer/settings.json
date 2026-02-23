@@ -2,6 +2,14 @@
   "type": "Read Page Text",
   "fields": [
     {
+      "name": "targetUrl",
+      "label": "URL для открытия (опционально)",
+      "type": "text",
+      "default": "",
+      "loadTo": true,
+      "groupId": "query"
+    },
+    {
       "name": "targetSelector",
       "label": "CSS селектор элемента",
       "type": "text",
@@ -22,6 +30,27 @@
       "label": "Таймаут чтения (мс)",
       "type": "number",
       "default": "10000",
+      "groupId": "query"
+    },
+    {
+      "name": "uiElementWaitMs",
+      "label": "Ожидание элемента перед действием (мс)",
+      "type": "number",
+      "default": "1000",
+      "groupId": "query"
+    },
+    {
+      "name": "postActionWaitMinMs",
+      "label": "Пауза после действия от (мс)",
+      "type": "number",
+      "default": "500",
+      "groupId": "query"
+    },
+    {
+      "name": "postActionWaitMaxMs",
+      "label": "Пауза после действия до (мс)",
+      "type": "number",
+      "default": "1500",
       "groupId": "query"
     },
     {

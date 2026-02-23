@@ -6,7 +6,7 @@ compatibility: opencode
 metadata:
   domain: afina
   language: en
-  version: "1.1.0"
+  version: "1.3.0"
 ---
 
 ## Usage Context
@@ -28,6 +28,8 @@ Afina scenarios are built as visual graphs. A **Module** is a custom block (`exe
 4. **Axiom of the Core**: the utility block `process.on("message")` is untouchable. **Global handlers are mandatory**: `uncaughtException`, `unhandledRejection` and `disconnect` (preventing zombie processes).
 5. **Axiom of Tabs**: when working with Puppeteer **never use `pages[0]` blindly**, always search for the active visible tab via `getCurrentPage()`.
 6. **Axiom of Output Contract**: `result` must contain the final business value intended for downstream use. Do not return debug/meta objects or intermediate payloads. Arrays are prohibited by default unless the user explicitly requests collection output.
+7. **Axiom of Waiting Contract**: when opening a new URL, always wait for full page load. Before UI interaction, wait for the target element (default `1000ms`). After UI interaction, apply random wait (default `500-1500ms`).
+8. **Axiom of Variable Safety**: Never read `saveTo` or any output key directly via `replacePlaceholders()`. Always wrap the call with a null-guard that falls back to the raw string. `replacePlaceholders` may return `null` for empty strings and on variable resolution errors, silently losing the save target.
 
 ## Working Algorithm
 
@@ -51,9 +53,11 @@ Afina scenarios are built as visual graphs. A **Module** is a custom block (`exe
    - Write business logic inside `moduleFunction`.
    - Read via `element.settings.<name>`, write to `savedObjects[saveTo]`.
    - **`utils.js` rule**: For browser modules (Puppeteer), a separate `utils.js` file with the `getCurrentPage` function is **mandatory**. For pure Node.js modules, it's sufficient to keep helper functions directly in `index.js`.
+   - **Waiting contract** for browser modules: `openUrlWithFullLoad(...)` for new navigation, `waitForUiElement(...)` before UI action, `waitAfterUiAction(...)` after UI action.
 5. **Verify**:
    - Are fields marked with `loadTo` processed via `replacePlaceholders()` (canonical boolean `true`, legacy string `"true"` only when required)?
    - Does `try...catch` return an error to the core?
+   - Are wait defaults respected (`1000ms` before interaction, `500-1500ms` after interaction) unless settings explicitly override them?
 6. **Self-test after implementation**:
    - Syntax: no obvious JS errors (missing brackets, bad requires, mismatched braces).
    - IPC contract: `process.send({ status: "ready" })` is present at module end.
@@ -101,10 +105,12 @@ When the user reports that a module or function is not working correctly:
 4. **IPC Lifecycle**: The module responds with `status: "ready"` upon startup, `status: "success"` with the result, and `status: "error"` upon failure.
 5. **Process Safety**: At the end of `index.js`, 3 global listeners are strictly present: `uncaughtException`, `unhandledRejection`, `disconnect`.
 6. **Browser Security**: The script uses `getCurrentPage()` instead of `browser.pages()[0]`, and correctly releases resources via `browser.disconnect()` (no `browser.close()`).
-7. **Adaptive Brief Compliance**: If uncertainty was medium/high, a short brief (max 3 questions) was used before implementation; if uncertainty was low, assumptions were stated briefly.
-8. **Output Contract**: `result` and `savedObjects[saveTo]` contain the final business value (not a debug object, not intermediate payloads, and not arrays by default).
-9. **Implementation Plan**: `docs/<module-name>/plan.md` exists and was written before coding started, structured as a roadmap with phase headings and checkboxes.
-10. **Self-testing**: all self-verifiable checks (syntax, IPC, output contract, settings consistency) were run after implementation and results reported inline.
+7. **Browser Waiting Contract**: If a new URL is opened, the module waits for full load; before UI interaction it waits for the element (default `1000ms`), and after UI interaction it applies random wait (default `500-1500ms`).
+8. **Adaptive Brief Compliance**: If uncertainty was medium/high, a short brief (max 3 questions) was used before implementation; if uncertainty was low, assumptions were stated briefly.
+9. **Output Contract**: `result` and `savedObjects[saveTo]` contain the final business value (not a debug object, not intermediate payloads, and not arrays by default).
+10. **Implementation Plan**: `docs/<module-name>/plan.md` exists and was written before coding started, structured as a roadmap with phase headings and checkboxes.
+11. **Variable Safety**: All `saveTo`-style keys are resolved through a null-guard wrapper. The write block includes an explicit `logger.warn` if `saveKey` is empty.
+12. **Self-testing**: all self-verifiable checks (syntax, IPC, output contract, settings consistency) were run after implementation and results reported inline.
 
 ## Checklist
 
@@ -112,8 +118,10 @@ When the user reports that a module or function is not working correctly:
 - [ ] `loadTo` in new modules is boolean `true`; legacy string `"true"` is used only for backward compatibility.
 - [ ] Input variables (`loadTo`) are passed through `replacePlaceholders()` strictly in the `${...}` format.
 - [ ] `result` is the final business value (no debug/meta object, no intermediate payload, no array by default).
+- [ ] `saveTo` and all output keys are read via a null-guard wrapper (not raw `replacePlaceholders`). Warn in log if `saveKey` is empty at write time.
 - [ ] **3 global listeners** are added to `index.js`: `uncaughtException`, `unhandledRejection` and `disconnect`.
 - [ ] If Puppeteer is used, the browser is disconnected via `browser.disconnect()`, not `browser.close()`.
+- [ ] Browser wait contract is implemented: full load on new URL, `1000ms` default pre-action element wait, `500-1500ms` default random post-action wait.
 - [ ] `docs/<module-name>/plan.md` created before coding started.
 - [ ] Self-test results reported inline (syntax, IPC, output contract, settings consistency).
 

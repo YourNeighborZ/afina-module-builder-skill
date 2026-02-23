@@ -1,4 +1,14 @@
-const { replacePlaceholders, getCurrentPage, connectToBrowser } = require('./utils');
+const {
+  replacePlaceholders,
+  getCurrentPage,
+  connectToBrowser,
+  openUrlWithFullLoad,
+  waitForUiElement,
+  waitAfterUiAction,
+  DEFAULT_UI_ELEMENT_WAIT_MS,
+  DEFAULT_POST_ACTION_WAIT_MIN_MS,
+  DEFAULT_POST_ACTION_WAIT_MAX_MS
+} = require('./utils');
 
 const getSetting = (element, name, fallback = "") => {
   const settings = (element && element.settings) || {};
@@ -13,20 +23,48 @@ const createLogger = () => ({
   debug: (message) => process.send && process.send({ type: "log", level: "debug", message })
 });
 
-const readTextBySelectorOrXpath = async (page, selector, xpath) => {
+const readTextBySelectorOrXpath = async (
+  page,
+  selector,
+  xpath,
+  uiElementWaitMs,
+  postActionWaitMinMs,
+  postActionWaitMaxMs
+) => {
   if (selector) {
-    const handle = await page.$(selector);
-    if (handle) {
-      const text = await page.evaluate((el) => (el.textContent || "").trim(), handle);
-      if (text) return text;
+    try {
+      const handle = await waitForUiElement(page, {
+        selector,
+        timeoutMs: uiElementWaitMs,
+        visible: true
+      });
+
+      if (handle) {
+        const text = await page.evaluate((el) => (el.textContent || "").trim(), handle);
+        await waitAfterUiAction(postActionWaitMinMs, postActionWaitMaxMs);
+        if (text) return text;
+      }
+    } catch (_) {
+      // Fallback to XPath below.
     }
   }
 
   if (xpath) {
-    const nodes = await page.$x(xpath);
-    if (nodes.length > 0) {
-      const text = await page.evaluate((el) => (el.textContent || "").trim(), nodes[0]);
-      if (text) return text;
+    try {
+      await waitForUiElement(page, {
+        xpath,
+        timeoutMs: uiElementWaitMs,
+        visible: true
+      });
+
+      const nodes = await page.$x(xpath);
+      if (nodes.length > 0) {
+        const text = await page.evaluate((el) => (el.textContent || "").trim(), nodes[0]);
+        await waitAfterUiAction(postActionWaitMinMs, postActionWaitMaxMs);
+        if (text) return text;
+      }
+    } catch (_) {
+      // No-op. Empty result is handled by caller.
     }
   }
 
@@ -47,25 +85,56 @@ const moduleFunction = async (element, savedObjects, _connections, _elementMap, 
     throw new Error("wsEndpoint not provided. Start browser before using this module.");
   }
 
+  const rawTargetUrl = getSetting(element, "targetUrl", "");
   const rawSelector = getSetting(element, "targetSelector", "h1");
   const rawXpath = getSetting(element, "targetXpath", "//h1");
   const timeoutMsRaw = getSetting(element, "timeoutMs", 10000);
+  const uiElementWaitMsRaw = getSetting(element, "uiElementWaitMs", DEFAULT_UI_ELEMENT_WAIT_MS);
+  const postActionWaitMinMsRaw = getSetting(element, "postActionWaitMinMs", DEFAULT_POST_ACTION_WAIT_MIN_MS);
+  const postActionWaitMaxMsRaw = getSetting(element, "postActionWaitMaxMs", DEFAULT_POST_ACTION_WAIT_MAX_MS);
   const timeoutMs = Number.isFinite(Number(timeoutMsRaw)) ? Number(timeoutMsRaw) : 10000;
+  const uiElementWaitMs = Number.isFinite(Number(uiElementWaitMsRaw))
+    ? Number(uiElementWaitMsRaw)
+    : DEFAULT_UI_ELEMENT_WAIT_MS;
+  const postActionWaitMinMs = Number.isFinite(Number(postActionWaitMinMsRaw))
+    ? Number(postActionWaitMinMsRaw)
+    : DEFAULT_POST_ACTION_WAIT_MIN_MS;
+  const postActionWaitMaxMs = Number.isFinite(Number(postActionWaitMaxMsRaw))
+    ? Number(postActionWaitMaxMsRaw)
+    : DEFAULT_POST_ACTION_WAIT_MAX_MS;
   const rawSaveTo = getSetting(element, "saveTo", "");
 
+  const targetUrl = replacePlaceholders(rawTargetUrl, savedObjects);
   const selector = replacePlaceholders(rawSelector, savedObjects);
   const xpath = replacePlaceholders(rawXpath, savedObjects);
   const saveTo = replacePlaceholders(rawSaveTo, savedObjects);
 
-  logger.debug(`Query selector='${selector}', xpath='${xpath}', timeoutMs=${timeoutMs}`);
+  logger.debug(
+    `Query url='${targetUrl || "<current>"}', selector='${selector}', xpath='${xpath}', timeoutMs=${timeoutMs}, uiElementWaitMs=${uiElementWaitMs}, postActionWaitMs=${postActionWaitMinMs}-${postActionWaitMaxMs}`
+  );
 
   const browser = await connectToBrowser(wsEndpoint);
 
   try {
     const page = await getCurrentPage(browser);
 
+    if (targetUrl) {
+      await withTimeout(
+        openUrlWithFullLoad(page, targetUrl, timeoutMs),
+        timeoutMs,
+        "Opening URL timeout"
+      );
+    }
+
     const text = await withTimeout(
-      readTextBySelectorOrXpath(page, selector, xpath),
+      readTextBySelectorOrXpath(
+        page,
+        selector,
+        xpath,
+        uiElementWaitMs,
+        postActionWaitMinMs,
+        postActionWaitMaxMs
+      ),
       timeoutMs,
       "Reading text timeout"
     );

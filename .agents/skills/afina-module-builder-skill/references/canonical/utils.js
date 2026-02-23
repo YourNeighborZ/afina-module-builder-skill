@@ -95,6 +95,111 @@ const delay = (ms) => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
+const DEFAULT_UI_ELEMENT_WAIT_MS = 1000;
+const DEFAULT_POST_ACTION_WAIT_MIN_MS = 500;
+const DEFAULT_POST_ACTION_WAIT_MAX_MS = 1500;
+const DEFAULT_NAVIGATION_TIMEOUT_MS = 30000;
+
+const toNonNegativeInt = (value, fallback) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(0, Math.floor(parsed));
+};
+
+const openUrlWithFullLoad = async (
+  page,
+  url,
+  timeoutMs = DEFAULT_NAVIGATION_TIMEOUT_MS,
+) => {
+  if (!page || typeof page.goto !== 'function') {
+    throw new Error('Valid Puppeteer page is required.');
+  }
+  if (!url || typeof url !== 'string') {
+    throw new Error('URL must be a non-empty string.');
+  }
+
+  const timeout = toNonNegativeInt(timeoutMs, DEFAULT_NAVIGATION_TIMEOUT_MS);
+
+  await page.goto(url, {
+    waitUntil: 'networkidle2',
+    timeout,
+  });
+
+  await page.waitForFunction(
+    () => document.readyState === 'complete',
+    { timeout },
+  );
+};
+
+const waitForUiElement = async (
+  page,
+  {
+    selector = '',
+    xpath = '',
+    timeoutMs = DEFAULT_UI_ELEMENT_WAIT_MS,
+    visible = true,
+  } = {},
+) => {
+  if (!page) {
+    throw new Error('Valid Puppeteer page is required.');
+  }
+
+  const timeout = toNonNegativeInt(timeoutMs, DEFAULT_UI_ELEMENT_WAIT_MS);
+
+  if (selector) {
+    await page.waitForSelector(selector, { timeout, visible });
+    return page.$(selector);
+  }
+
+  if (!xpath) {
+    throw new Error('Either selector or xpath must be provided.');
+  }
+
+  await page.waitForFunction(
+    (expr, shouldBeVisible) => {
+      const node = document.evaluate(
+        expr,
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null,
+      ).singleNodeValue;
+
+      if (!node) return false;
+      if (!shouldBeVisible) return true;
+
+      const style = window.getComputedStyle(node);
+      const rect = node.getBoundingClientRect();
+      return (
+        style.visibility !== 'hidden' &&
+        style.display !== 'none' &&
+        rect.width > 0 &&
+        rect.height > 0
+      );
+    },
+    { timeout },
+    xpath,
+    visible,
+  );
+
+  const nodes = await page.$x(xpath);
+  return nodes[0] || null;
+};
+
+const waitAfterUiAction = async (
+  minMs = DEFAULT_POST_ACTION_WAIT_MIN_MS,
+  maxMs = DEFAULT_POST_ACTION_WAIT_MAX_MS,
+) => {
+  const min = toNonNegativeInt(minMs, DEFAULT_POST_ACTION_WAIT_MIN_MS);
+  const max = toNonNegativeInt(maxMs, DEFAULT_POST_ACTION_WAIT_MAX_MS);
+  const from = Math.min(min, max);
+  const to = Math.max(min, max);
+  const randomizedWaitMs = from + Math.floor(Math.random() * (to - from + 1));
+
+  await delay(randomizedWaitMs);
+  return randomizedWaitMs;
+};
+
 // Connect to the browser through WebSocket
 const connectToBrowser = async (wsEndpoint) => {
   try {
@@ -164,5 +269,17 @@ const getCurrentPage = async (browser) => {
   }
 };
 
-module.exports = { replacePlaceholders, delay, connectToBrowser, getCurrentPage };
+module.exports = {
+  replacePlaceholders,
+  delay,
+  openUrlWithFullLoad,
+  waitForUiElement,
+  waitAfterUiAction,
+  connectToBrowser,
+  getCurrentPage,
+  DEFAULT_UI_ELEMENT_WAIT_MS,
+  DEFAULT_POST_ACTION_WAIT_MIN_MS,
+  DEFAULT_POST_ACTION_WAIT_MAX_MS,
+  DEFAULT_NAVIGATION_TIMEOUT_MS,
+};
     
