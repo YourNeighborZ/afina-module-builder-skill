@@ -27,9 +27,6 @@ This repository stores the skill under `.agents/skills/afina-module-builder-skil
 
 ```bash
 git clone https://github.com/YourNeighborZ/afina-module-builder-skill.git ".agents/skills/afina-module-builder-skill-repo"
-mkdir -p ".agents/skills/afina-module-builder-skill"
-cp -R ".agents/skills/afina-module-builder-skill-repo/.agents/skills/afina-module-builder-skill/." ".agents/skills/afina-module-builder-skill/"
-rm -rf ".agents/skills/afina-module-builder-skill-repo"
 ```
 
 After that, the skill is in the correct project folder and can be loaded automatically.

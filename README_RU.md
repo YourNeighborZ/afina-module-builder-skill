@@ -27,9 +27,6 @@
 
 ```bash
 git clone https://github.com/YourNeighborZ/afina-module-builder-skill.git ".agents/skills/afina-module-builder-skill-repo"
-mkdir -p ".agents/skills/afina-module-builder-skill"
-cp -R ".agents/skills/afina-module-builder-skill-repo/.agents/skills/afina-module-builder-skill/." ".agents/skills/afina-module-builder-skill/"
-rm -rf ".agents/skills/afina-module-builder-skill-repo"
 ```
 
 После этого навык будет в правильной папке проекта и подхватится автоматически.
