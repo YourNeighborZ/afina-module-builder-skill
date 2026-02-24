@@ -30,6 +30,7 @@ Afina scenarios are built as visual graphs. A **Module** is a custom block (`exe
 6. **Axiom of Output Contract**: The module returns exactly one result payload per run. `result` must contain the final business value intended for downstream use. Do not return debug/meta objects or intermediate payloads. If multiple entities are needed, return one array and split/process it downstream using Afina blocks.
 7. **Axiom of Waiting Contract**: when opening a new URL, always wait for full page load. Before UI interaction, wait for the target element (default `1000ms`). After UI interaction, apply random wait (default `500-1500ms`).
 8. **Axiom of Variable Safety**: Never read `saveTo` or any output key directly via `replacePlaceholders()`. Always wrap the call with a null-guard that falls back to the raw string. `replacePlaceholders` may return `null` for empty strings and on variable resolution errors, silently losing the save target.
+9. **Axiom of Diagnostics Logs**: Afina writes runtime logs in its own directory. Use the relative path `data/logs/afina.log` (from Afina root). Do not try to auto-discover the local Afina installation path; request the log file from the user when diagnostics need runtime evidence.
 
 ## Working Algorithm
 
@@ -90,12 +91,13 @@ When the user reports that a module or function is not working correctly:
 
 1. **Active listening**: ask at most **2** clarifying questions to precisely identify the symptom and its context (what was expected, what actually happened, in which step).
 2. **Research**: review the relevant code, `settings.json` field names, IPC flow, and output value.
-3. **Write bug report** to `docs/<module-name>/bug-<short-slug>.md` with the following structure:
+3. **Request runtime logs when needed**: if the failure cannot be isolated from code/config only, ask the user to provide the Afina log file from `data/logs/afina.log` (relative to Afina root), or a relevant excerpt.
+4. **Write bug report** to `docs/<module-name>/bug-<short-slug>.md` with the following structure:
    - **Symptom** — what the user observed vs. what was expected.
    - **Root cause** — identified source of the problem in the code or config.
    - **Fix options** — at least 2 options with trade-offs.
    - **Recommended fix** — chosen option with rationale.
-4. **Apply the fix** only after the report file is created.
+5. **Apply the fix** only after the report file is created.
 
 ## Definition of Done
 
@@ -143,3 +145,4 @@ Extra technical information (MUST BE STUDIED DURING CREATION):
 
 - Code templates: `references/templates.md` (contains the reference index.js and settings.json)
 - Patterns and anti-patterns: `references/best-practices.md` (working with Puppeteer, UI Builder, Timeout)
+- Afina runtime log path (relative to Afina root): `data/logs/afina.log` (request from user when needed)

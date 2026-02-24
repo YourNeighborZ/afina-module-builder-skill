@@ -2,7 +2,7 @@
 
 This folder contains ready-to-use examples and best practices for building Afina modules.
 
-Baseline compatibility target: production modules from Afina 1.0.3 (`D:\temp\Afina 1.0.3\data\modules`).
+Baseline compatibility target: production modules from Afina 1.0.3 environments.
 
 ## Structure
 - `templates.md` - Base templates for `settings.json` and `index.js` (including global error handlers).
