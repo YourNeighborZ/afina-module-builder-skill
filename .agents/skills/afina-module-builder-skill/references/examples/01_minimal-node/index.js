@@ -13,6 +13,12 @@ const replacePlaceholders = (value, savedObjects) => {
   });
 };
 
+const readKey = (raw, savedObjects) => {
+  if (!raw) return "";
+  const resolved = replacePlaceholders(raw, savedObjects);
+  return resolved !== null && resolved !== undefined ? String(resolved) : String(raw);
+};
+
 const createLogger = () => ({
   info: (message) => process.send && process.send({ type: "log", level: "info", message }),
   warn: (message) => process.send && process.send({ type: "log", level: "warn", message }),
@@ -44,13 +50,15 @@ const moduleFunction = async (element, savedObjects) => {
 
     const inputText = replacePlaceholders(rawInputText, savedObjects);
     const operation = replacePlaceholders(rawOperation, savedObjects);
-    const saveTo = replacePlaceholders(rawSaveTo, savedObjects);
+    const saveTo = readKey(rawSaveTo, savedObjects);
 
     const result = transformText(inputText, operation);
 
     if (saveTo && savedObjects && typeof savedObjects === "object") {
       savedObjects[saveTo] = result;
       logger.info(`Result saved to variable: ${saveTo}`);
+    } else {
+      logger.warn("saveTo is empty or savedObjects unavailable - result NOT saved.");
     }
 
     return result;

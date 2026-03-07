@@ -16,6 +16,12 @@ const getSetting = (element, name, fallback = "") => {
   return fallback;
 };
 
+const readKey = (raw, savedObjects) => {
+  if (!raw) return "";
+  const resolved = replacePlaceholders(raw, savedObjects);
+  return resolved !== null && resolved !== undefined ? String(resolved) : String(raw);
+};
+
 const createLogger = () => ({
   info: (message) => process.send && process.send({ type: "log", level: "info", message }),
   warn: (message) => process.send && process.send({ type: "log", level: "warn", message }),
@@ -90,8 +96,8 @@ const moduleFunction = async (element, savedObjects, _connections, _elementMap, 
   const rawXpath = getSetting(element, "targetXpath", "//h1");
   const timeoutMsRaw = getSetting(element, "timeoutMs", 10000);
   const uiElementWaitMsRaw = getSetting(element, "uiElementWaitMs", DEFAULT_UI_ELEMENT_WAIT_MS);
-  const postActionWaitMinMsRaw = getSetting(element, "postActionWaitMinMs", DEFAULT_POST_ACTION_WAIT_MIN_MS);
-  const postActionWaitMaxMsRaw = getSetting(element, "postActionWaitMaxMs", DEFAULT_POST_ACTION_WAIT_MAX_MS);
+  const postActionWaitMinMsRaw = getSetting(element, "delay", DEFAULT_POST_ACTION_WAIT_MIN_MS);
+  const postActionWaitMaxMsRaw = getSetting(element, "delay2", DEFAULT_POST_ACTION_WAIT_MAX_MS);
   const timeoutMs = Number.isFinite(Number(timeoutMsRaw)) ? Number(timeoutMsRaw) : 10000;
   const uiElementWaitMs = Number.isFinite(Number(uiElementWaitMsRaw))
     ? Number(uiElementWaitMsRaw)
@@ -107,7 +113,7 @@ const moduleFunction = async (element, savedObjects, _connections, _elementMap, 
   const targetUrl = replacePlaceholders(rawTargetUrl, savedObjects);
   const selector = replacePlaceholders(rawSelector, savedObjects);
   const xpath = replacePlaceholders(rawXpath, savedObjects);
-  const saveTo = replacePlaceholders(rawSaveTo, savedObjects);
+  const saveTo = readKey(rawSaveTo, savedObjects);
 
   logger.debug(
     `Query url='${targetUrl || "<current>"}', selector='${selector}', xpath='${xpath}', timeoutMs=${timeoutMs}, uiElementWaitMs=${uiElementWaitMs}, postActionWaitMs=${postActionWaitMinMs}-${postActionWaitMaxMs}`
@@ -146,6 +152,8 @@ const moduleFunction = async (element, savedObjects, _connections, _elementMap, 
     if (saveTo && savedObjects && typeof savedObjects === "object") {
       savedObjects[saveTo] = text;
       logger.info(`Result saved to variable: ${saveTo}`);
+    } else {
+      logger.warn("saveTo is empty or savedObjects unavailable - result NOT saved.");
     }
 
     return text;

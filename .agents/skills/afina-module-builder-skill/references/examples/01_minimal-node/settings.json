@@ -2,6 +2,12 @@
   "type": "Text Transform",
   "fields": [
     {
+      "name": "saveTo",
+      "label": "Сохранить результат в переменную",
+      "type": "text",
+      "default": ""
+    },
+    {
       "name": "inputText",
       "label": "Введите текст",
       "type": "text",
@@ -21,14 +27,6 @@
         { "label": "Длина текста", "value": "length" }
       ],
       "groupId": "input"
-    },
-    {
-      "name": "saveTo",
-      "label": "Сохранить результат в переменную",
-      "type": "text",
-      "default": "",
-      "loadTo": true,
-      "groupId": "output"
     }
   ]
 }

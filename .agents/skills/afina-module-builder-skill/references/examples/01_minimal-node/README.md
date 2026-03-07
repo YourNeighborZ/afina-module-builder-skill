@@ -1,11 +1,10 @@
 # 01 minimal-node
 
-Minimal Afina module without browser. Suitable for string and number transformations.
+Minimal Script Module without browser.
 
-## What this example shows
+Shows:
 
-- `settings.json` in the style of working Afina 1.0.3 modules (`type` as module name).
-- Using `loadTo` for the input field.
-- Canonical reading via `element.settings.<name>`.
-- Writing result to `savedObjects[element.settings.saveTo]`.
-- Saving the result in `savedObjects` and returning via IPC.
+- `saveTo` as the first field
+- `${var}` placeholder resolution for inputs
+- `readKey(...)` for output key safety
+- one final result returned through Afina IPC

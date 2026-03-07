@@ -40,25 +40,30 @@
       "groupId": "query"
     },
     {
-      "name": "postActionWaitMinMs",
-      "label": "Пауза после действия от (мс)",
+      "name": "delay",
+      "label": "Задержка от (мс)",
       "type": "number",
       "default": "500",
-      "groupId": "query"
+      "groupId": "delay"
     },
     {
-      "name": "postActionWaitMaxMs",
-      "label": "Пауза после действия до (мс)",
+      "name": "delay2",
+      "label": "Задержка до (мс)",
       "type": "number",
       "default": "1500",
-      "groupId": "query"
+      "groupId": "delay"
+    },
+    {
+      "name": "description",
+      "label": "Описание",
+      "type": "text",
+      "default": ""
     },
     {
       "name": "saveTo",
       "label": "Сохранить результат в переменную",
       "type": "text",
       "default": "",
-      "loadTo": true,
       "groupId": "output"
     }
   ]

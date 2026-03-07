@@ -63,7 +63,6 @@
       "label": "Сохранить ответ в переменную",
       "type": "text",
       "default": "",
-      "loadTo": true,
       "groupId": "output"
     }
   ],
